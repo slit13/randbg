@@ -13,6 +13,9 @@ randbg -dir relative_path_to_some_folder_to_search
 randbg -dir relative_path_to_some_folder_to_search wildcard
 ```
 
+the script searches for all files in a specified directory, `BG_DIR` or `-dir foo`, then calls
+`feh` to set the background
+
 ## license
 
 read `LICENSE`, but in short:
