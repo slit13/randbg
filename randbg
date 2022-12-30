@@ -1,0 +1,43 @@
+#!/bin/sh
+
+bg_dir=""
+
+if [ -n "${BG_DIR+x}" ] ; then
+	bg_dir="$BG_DIR"
+else
+	bg_dir="$HOME/bg"
+fi
+
+file=""
+wild=""
+
+set_bg() {
+	printf "bg_dir = $bg_dir\n"
+	if [ "$#" -gt 0 ] ; then
+		wild="$1"
+		file=$(find "$bg_dir" -name "*$wild*" -type f | sort -R | head -n1)
+		echo "wildcard = $wild"
+	else
+		file=$(find $bg_dir -type f | sort -R | head -n1)
+	fi
+}
+
+if [ "$1" = "-file" ] ; then
+	file="$2"
+elif [ "$1" = "-dir" ] ; then
+	bg_dir="$2"
+	set_bg "$3"
+else
+	set_bg "$@"
+fi
+
+if [ -e "$file" ] ; then
+	echo "$file"
+	feh --no-fehbg --bg-max "$file"
+else
+	if [ -z "$file" ] ; then
+		printf "No file found for wildcard: $wild\n"
+	else
+		printf "$file doesn't exist\n"
+	fi
+fi
