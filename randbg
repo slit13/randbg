@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# TODO: a complete rewrite, this file was first created like a year ago
+#       this is the equivalent of corporate software that needs old code because no one knows how
+#       or wants to modify it
+
 file=""
 wild=""
 
