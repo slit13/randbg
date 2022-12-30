@@ -1,38 +1,39 @@
 #!/bin/sh
 
-bg_dir=""
-
-if [ -n "${BG_DIR+x}" ] ; then
-	bg_dir="$BG_DIR"
-else
-	bg_dir="$HOME/bg"
-fi
-
 file=""
 wild=""
 
 set_bg() {
-	printf "bg_dir = $bg_dir\n"
+	if [ ! -n "${bgdir+x}" ] ; then
+		if [ -n "${BG_DIR+x}" ] ; then
+			bgdir="$BG_DIR"
+		else
+			printf "No directory set\nUse -dir or set BG_DIR\n"
+			exit 1
+		fi
+	fi
+
+	printf "dir = $bgdir\n"
 	if [ "$#" -gt 0 ] ; then
 		wild="$1"
-		file=$(find "$bg_dir" -name "*$wild*" -type f | sort -R | head -n1)
+		file=$(find "$bgdir" -name "*$wild*" -type f | sort -R | head -n1)
 		echo "wildcard = $wild"
 	else
-		file=$(find $bg_dir -type f | sort -R | head -n1)
+		file=$(find $bgdir -type f | sort -R | head -n1)
 	fi
 }
 
 if [ "$1" = "-file" ] ; then
 	file="$2"
 elif [ "$1" = "-dir" ] ; then
-	bg_dir="$2"
+	bgdir="$2"
 	set_bg "$3"
 else
 	set_bg "$@"
 fi
 
 if [ -e "$file" ] ; then
-	echo "$file"
+	echo "file = $file"
 	feh --no-fehbg --bg-max "$file"
 else
 	if [ -z "$file" ] ; then
