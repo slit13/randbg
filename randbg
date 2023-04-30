@@ -1,11 +1,14 @@
 #!/bin/sh
 
-# TODO: a complete rewrite, this file was first created like a year ago
+# TODO: a complete rewrite in fish,
+#       yes fish because fuck you and your "PoSiX iS BeTtEr", POSIX shell fucking sucks,
+#       this file was first created like 2 years ago
 #       this is the equivalent of corporate software that needs old code because no one knows how
 #       or wants to modify it
 
 file=""
 wild=""
+is_image=0
 
 set_bg() {
 	if [ ! -n "${bgdir+x}" ] ; then
@@ -20,11 +23,18 @@ set_bg() {
 	printf "dir = $bgdir\n"
 	if [ "$#" -gt 0 ] ; then
 		wild="$1"
-		file=$(find "$bgdir" -name "*$wild*" -type f | sort -R | head -n1)
+		file=$(find "$bgdir" -wholename "*$wild*" -type f | sort -R | head -n1)
 		echo "wildcard = $wild"
 	else
 		file=$(find $bgdir -type f | sort -R | head -n1)
 	fi
+}
+
+check_image() {
+	case "$1" in
+		*.png|*.jpg|*.gif|*.svg) is_image=1 ;;
+		*) is_image=0 ;;
+	esac
 }
 
 if [ "$1" = "-file" ] ; then
@@ -37,6 +47,12 @@ else
 fi
 
 if [ -e "$file" ] ; then
+	check_image "$file"
+	if [ "$is_image" -eq 0 ] ; then
+		printf "$file is not a recognized image\n"
+		exit 1
+	fi
+
 	echo "file = $file"
 	feh --no-fehbg --bg-max "$file"
 else
