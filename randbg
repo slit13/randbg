@@ -1,10 +1,8 @@
 #!/bin/sh
 
-# TODO: a complete rewrite in fish,
-#       yes fish because fuck you and your "PoSiX iS BeTtEr", POSIX shell fucking sucks,
-#       this file was first created like 2 years ago
-#       this is the equivalent of corporate software that needs old code because no one knows how
-#       or wants to modify it
+# MAINTAINED HERE FOR HISTORICAL REASONS
+# DON'T USE THIS SCRIPT
+# USE THE LUA VERSION INSTEAD
 
 file=""
 wild=""
@@ -30,12 +28,14 @@ set_bg() {
 	fi
 }
 
+# rewrote
 check_image() {
 	case "$1" in
-		*.png|*.jpg|*.gif|*.svg) is_image=1 ;;
+		*.png|*.jpg|*.gif|*.webp|*.svg) is_image=1 ;;
 		*) is_image=0 ;;
 	esac
 }
+# rewrote
 
 if [ "$1" = "-file" ] ; then
 	file="$2"
