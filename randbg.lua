@@ -5,6 +5,7 @@
 local File = ""
 local Dir = ""
 local Wildcard = ".*"
+local RecursiveSearch = true
 
 function printErrorQuit(msg)
 	print(msg)
@@ -38,6 +39,7 @@ local function printHelp()
 		"\t-file path_to_file - use a given file instead of randomly picking from a directory\n" ..
 		"\t-dir path_to_dir   - use a given directory instead of the value of BG_DIR\n" ..
 		"\t-seed number       - provide a custom seed for the random number generation, must be a number\n" ..
+		"\t-no-recursive      - don't use recursive search, by default the script will search every subdirectory\n" ..
 		"\twhatever_argument  - use the argument as a wildcard, the wildcard will be *whatever_argument* and the last such argument will be used as the wildcard\n" ..
 		"Environment Variables:\n" ..
 		"\tBG_DIR            - path to the folder containing your background images\n" ..
@@ -71,6 +73,8 @@ local function parseArguments()
 			end
 
 			RandomSeedValue = seed
+		elseif arg[i] == "-no-recursive" then
+			RecursiveSearch = false
 		else
 			Wildcard = ".*" .. arg[i] .. ".*"
 		end
@@ -78,6 +82,39 @@ local function parseArguments()
 		skipNext = false
 		::continue::
 	end
+end
+
+local lfs = require "lfs"
+
+local function isFile(path)
+	local attributes = lfs.attributes(path)
+	return attributes and attributes.mode == "file"
+end
+
+local function getFileRecursive(directoryPath, wildcard)
+	local function isFile(path)
+		local attributes = lfs.attributes(path)
+		return attributes and attributes.mode == "file"
+	end
+
+	local function searchFiles(directoryPath, wildcard, files)
+		for file in lfs.dir(directoryPath) do
+			if file ~= "." and file ~= ".." then
+				local filepath = directoryPath .. "/" .. file
+
+				if isFile(filepath) and filepath:match(wildcard) then
+					table.insert(files, filepath)
+				elseif lfs.attributes(filepath, "mode") == "directory" then
+					searchFiles(filepath, wildcard, files)
+				end
+			end
+		end
+	end
+
+	local files = {}
+	searchFiles(directoryPath, wildcard, files)
+
+	return files[randomIntRange(1, #files)]
 end
 
 local function getFile(directoryPath, wildcard)
@@ -120,7 +157,11 @@ local function main()
 	end
 
 	if File == "" then
-		File = getFile(Dir, Wildcard)
+		if RecursiveSearch then
+			File = getFileRecursive(Dir, Wildcard)
+		else
+			File = getFile(Dir, Wildcard)
+		end
 	end
 
 	assert(File ~= "", "ERROR: File is undefined")

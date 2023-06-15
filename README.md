@@ -4,12 +4,7 @@ my shell script for random backrounds<br>
 requires: `feh`, `/bin/sh`<br>
 
 ## usage
-```
--help              - print this screen
--file path_to_file - use a given file instead of randomly picking from a directory
--dir path_to_dir   - use a given directory instead of the value of BG_DIR
-whatever_argument  - use the argument as a wildcard, the wildcard will be *whatever_argument* and the last such argument will be used as the wildcard
-```
+Execute the script with `lua randbg.lua -help` for usage information
 
 ### old version
 ```
