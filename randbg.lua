@@ -13,11 +13,22 @@ function printErrorQuit(msg)
 end
 
 -- an integer representing the seed to be used in the random number generation
--- change this function if you want
+-- default is os.time() but can be changed by setting RANDOM_SEED_EXPR
 RandomSeedValue = os.time()
+if os.getenv("RANDBG_SEED_EXPR") ~= nil then
+	local expr, errorMessage = load("return " .. os.getenv("RANDBG_SEED_EXPR"))
+	if expr ~= nil then
+		if type(expr()) == "number" then
+			RandomSeedValue = expr()
+		end
+	else
+		print(errorMessage)
+	end
+end
 
 -- random int from a to b, both ends inclusive
 local function randomIntRange(a, b)
+	-- ensure that RandomSeedValue is an integer
 	math.randomseed(math.floor(RandomSeedValue))
 
 	-- Swap values if b < a
@@ -43,7 +54,8 @@ local function printHelp()
 		"\twhatever_argument  - use the argument as a wildcard, the wildcard will be *whatever_argument* and the last such argument will be used as the wildcard\n" ..
 		"Environment Variables:\n" ..
 		"\tBG_DIR            - path to the folder containing your background images\n" ..
-		"\tRANDBG_SILENT_FEH - 1 or true, makes the `feh` command completely silent including errors\n"
+		"\tRANDBG_SILENT_FEH - 1 or true, makes the `feh` command completely silent including errors\n" ..
+		"\tRANDBG_SEED_EXPR  - a Lua expression representing the random number generation seed, must be a number\n"
 	)
 end
 
