@@ -1,12 +1,16 @@
 # randbg
 
-my shell script for random backrounds<br>
-requires: `feh`, `/bin/sh`<br>
+my shell script for random backrounds
+
+there's also `cyclebg` for automatically changing the background at a specified interval
+
+`randbg` requires: `feh` and `lua`<br>
+`cyclebg` requires: `randbg` and `/bin/sh`<br>
 
 ## usage
 Execute the script with `lua randbg.lua -help` for usage information
 
-### old version
+### old version (don't use)
 ```
 randbg
 randbg wildcard (implicit * at the edges i.e. aa = *aa*)

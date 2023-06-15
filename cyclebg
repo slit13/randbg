@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# TODO: help
+#       as in how to use the program
+#       but i would like some help...                                                  from Collei
+
+if [ -z "$CYCLEBG_RANDBG_CMD" ] ; then
+	printf "CYCLEBG_RANDBG_CMD is not set\n" >&2
+	exit 1
+fi
+
+is_integer() {
+	case $1 in
+		''|*[!0-9]*) return 1 ;;
+		*) return 0 ;;
+	esac
+}
+
+interval=600 # default interval of 10 minutes
+if is_integer "$CYCLEBG_INTERVAL" ; then
+	interval="$CYCLEBG_INTERVAL"
+fi
+
+case "$CYCLEBG_RANDBG_CMD" in
+	randbg|"randbg "*) ;;
+	*) printf "CYCLEBG_RANDBG_CMD doesn't seem to be a randbg command\n" >&2 ; exit 1 ;;
+esac
+
+while true ; do
+	if ! pgrep -x Xorg > /dev/null; then
+		break # X11 session has closed, exit the loop
+	fi
+
+	eval "$CYCLEBG_RANDBG_CMD"
+
+	sleep "$interval"
+done
