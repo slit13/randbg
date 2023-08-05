@@ -51,7 +51,7 @@ local function printHelp()
 		"\t-dir path_to_dir   - use a given directory instead of the value of BG_DIR\n" ..
 		"\t-seed number       - provide a custom seed for the random number generation, must be a number\n" ..
 		"\t-no-recursive      - don't use recursive search, by default the script will search every subdirectory\n" ..
-		"\twhatever_argument  - use the argument as a wildcard, the wildcard will be *whatever_argument* and the last such argument will be used as the wildcard\n" ..
+		"\twhatever_argument  - use the argument as a wildcard, the last such argument will be used as the wildcard\n" ..
 		"Environment Variables:\n" ..
 		"\tBG_DIR            - path to the folder containing your background images\n" ..
 		"\tRANDBG_SILENT_FEH - 1 or true, makes the `feh` command completely silent including errors\n" ..
@@ -88,7 +88,7 @@ local function parseArguments()
 		elseif arg[i] == "-no-recursive" then
 			RecursiveSearch = false
 		else
-			Wildcard = ".*" .. arg[i] .. ".*"
+			Wildcard = ".*" .. (arg[i]):gsub("%*", ".*") .. ".*"
 		end
 
 		skipNext = false
