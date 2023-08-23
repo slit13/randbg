@@ -5,6 +5,7 @@
 local File = ""
 local Dir = ""
 local Wildcard = ".*"
+local FileFromArgs = false
 local RecursiveSearch = true
 
 function printErrorQuit(msg)
@@ -46,14 +47,15 @@ local function printHelp()
 	print(
 		arg[0] .. "\n\n"..
 		"CLI Arguments:\n" ..
-		"\t-help              - print this screen\n" ..
+		"\t-help			  - print this screen\n" ..
 		"\t-file path_to_file - use a given file instead of randomly picking from a directory\n" ..
 		"\t-dir path_to_dir   - use a given directory instead of the value of BG_DIR\n" ..
-		"\t-seed number       - provide a custom seed for the random number generation, must be a number\n" ..
-		"\t-no-recursive      - don't use recursive search, by default the script will search every subdirectory\n" ..
+		"\t-seed number	   - provide a custom seed for the random number generation, must be a number\n" ..
+		"\t-no-recursive	  - don't use recursive search, by default the script will search every subdirectory\n" ..
 		"\twhatever_argument  - use the argument as a wildcard, the last such argument will be used as the wildcard\n" ..
+		"\t-- - use the rest of the arguments as a list of files to choose from, wildcards or any other argument cannot be used anymore so wildcards must be specified before\n" ..
 		"Environment Variables:\n" ..
-		"\tBG_DIR            - path to the folder containing your background images\n" ..
+		"\tBG_DIR			- path to the folder containing your background images\n" ..
 		"\tRANDBG_SILENT_FEH - 1 or true, makes the `feh` command completely silent including errors\n" ..
 		"\tRANDBG_SEED_EXPR  - a Lua expression representing the random number generation seed, must be a number\n"
 	)
@@ -87,6 +89,14 @@ local function parseArguments()
 			RandomSeedValue = seed
 		elseif arg[i] == "-no-recursive" then
 			RecursiveSearch = false
+		elseif arg[i] == "--" then
+			FileFromArgs = true
+
+			RemainingArgs = {}
+			for index = i + 1, #arg do
+				table.insert(RemainingArgs, arg[index])
+			end
+			break
 		else
 			Wildcard = ".*" .. (arg[i]):gsub("%*", ".*") .. ".*"
 		end
@@ -104,11 +114,6 @@ local function isFile(path)
 end
 
 local function getFileRecursive(directoryPath, wildcard)
-	local function isFile(path)
-		local attributes = lfs.attributes(path)
-		return attributes and attributes.mode == "file"
-	end
-
 	local function searchFiles(directoryPath, wildcard, files)
 		for file in lfs.dir(directoryPath) do
 			if file ~= "." and file ~= ".." then
@@ -129,13 +134,40 @@ local function getFileRecursive(directoryPath, wildcard)
 	return files[randomIntRange(1, #files)]
 end
 
+local function getFileFromArgs(args, wildcard)
+	for i = #args, 1, -1 do
+		local filePath = args[i]
+
+		if not isFile(filePath) then
+			filePath = Dir .. '/' .. filePath
+		end
+
+		if not isFile(filePath) then
+			table.remove(args, i)
+		else
+			args[i] = filePath
+		end
+	end
+
+	if #args == 0 then
+		return nil
+	end
+
+	local files = {}
+	for i = 0, #args do
+		local file = args[i]
+		if file ~= nil then
+			if file:match(wildcard) then
+				table.insert(files, file)
+			end
+		end
+	end
+
+	return files[randomIntRange(1, #args)]
+end
+
 local function getFile(directoryPath, wildcard)
 	local lfs = require "lfs"
-
-	local function isFile(path)
-		local attributes = lfs.attributes(path)
-		return attributes and attributes.mode == "file"
-	end
 
 	local files = {}
 	for file in lfs.dir(directoryPath) do
@@ -159,7 +191,7 @@ end
 local function main()
 	parseArguments()
 
-	if Dir == "" then
+	if Dir == "" or Dir == nil then
 		local bg_dir = os.getenv("BG_DIR")
 		if bg_dir == nil then
 			printErrorQuit("No folder available, use -dir path_to_folder or set BG_DIR")
@@ -168,15 +200,17 @@ local function main()
 		end
 	end
 
-	if File == "" then
-		if RecursiveSearch then
+	if File == "" or File == nil then
+		if FileFromArgs then
+			File = getFileFromArgs(RemainingArgs, Wildcard)
+		elseif RecursiveSearch then
 			File = getFileRecursive(Dir, Wildcard)
 		else
 			File = getFile(Dir, Wildcard)
 		end
 	end
 
-	assert(File ~= "", "ERROR: File is undefined")
+	assert(File ~= "" or File ~= nil, "ERROR: File is undefined")
 
 	local cmd = ("feh --no-fehbg --bg-max %s"):format(File)
 	local silentFeh = os.getenv("RANDBG_SILENT_FEH")
